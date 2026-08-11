@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SiteAlpha — Data Center Land Intelligence (v0.6)</title>
+<title>SiteAlpha — Data Center Land Intelligence (v0.8)</title>
 <style>/* required styles */
 
 .leaflet-pane,
@@ -726,12 +726,13 @@ svg.leaflet-image-layer.leaflet-interactive path {
 </head>
 <body style="position:relative">
 <header>
-  <h1>SiteAlpha <span>Data Center Land Intelligence · v0.7 — search anywhere</span></h1>
+  <h1>SiteAlpha <span>Data Center Land Intelligence · v0.8 — guided</span></h1>
   <div id="searchWrap" style="display:flex;gap:6px;align-items:center;margin-left:auto;margin-right:14px">
     <input id="searchBox" type="text" placeholder="Search any place — try &quot;Loudoun County VA&quot;" 
       style="width:290px;background:#2b2b2a;border:1px solid #4a4a46;border-radius:6px;color:var(--text-primary);padding:7px 10px;font-size:12.5px;outline:none">
     <button class="btn" id="btnSearch">Search</button>
     <button class="btn" id="btnMarkets" style="border-color:#3987e5;color:#86b6ef">☰ Markets guide</button>
+    <button class="btn" id="btnHelp">? How scoring works</button>
   </div>
   <div class="tiles">
     <div class="tile"><div class="v" id="tSites">–</div><div class="l">Campuses tracked</div></div>
@@ -788,11 +789,52 @@ svg.leaflet-image-layer.leaflet-interactive path {
     </div>
   </div>
 </div>
+<div id="helpPanel" style="display:none;position:absolute;z-index:1250;top:118px;right:14px;width:360px;max-height:74vh;overflow:auto;background:#232322;border:1px solid #3f3f3b;border-radius:10px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,.5)">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+    <b style="color:var(--text-primary);font-size:14px">How SiteAlpha scoring works</b>
+    <button class="btn" id="helpClose" style="padding:2px 8px">✕</button>
+  </div>
+  <div style="color:var(--text-secondary);font-size:12px;line-height:1.55">
+    Every parcel gets a <b>DC Probability Score (0–100)</b> — the model's read on how likely this land is to be acquired for data center development. Eight weighted factors:
+    <div style="margin:8px 0;color:var(--muted)">
+      Power proximity &amp; capacity <b style="float:right;color:var(--text-secondary)">30</b><br>
+      Regional demand momentum <b style="float:right;color:var(--text-secondary)">20</b><br>
+      Leading indicators (filings, LLC buys) <b style="float:right;color:var(--text-secondary)">15</b><br>
+      Fiber proximity <b style="float:right;color:var(--text-secondary)">10</b><br>
+      Water access <b style="float:right;color:var(--text-secondary)">8</b><br>
+      Parcel quality (size, shape) <b style="float:right;color:var(--text-secondary)">7</b><br>
+      Zoning friendliness <b style="float:right;color:var(--text-secondary)">5</b><br>
+      Price-to-potential gap <b style="float:right;color:var(--text-secondary)">5</b>
+    </div>
+    <b style="color:var(--text-primary)">What the bands mean — and what to do:</b>
+    <div style="margin:6px 0 10px">
+      <span style="color:#86b6ef"><b>80–100 Acquire/Option</b></span> — top conviction. Diligence immediately; option before the market re-rates.<br>
+      <span style="color:#3987e5"><b>60–79 Watch</b></span> — strong candidate. Verify flood, rail, mineral rights; open owner conversations.<br>
+      <span style="color:#256abf"><b>40–59 Monitor</b></span> — not yet. Re-scores monthly as power &amp; filings change.<br>
+      <span style="color:var(--muted)"><b>&lt;40 Pass</b></span> — a hard exclusion or weak fundamentals.
+    </div>
+    <b style="color:var(--text-primary)">FAQ</b>
+    <div style="margin-top:6px">
+      <b style="color:var(--text-secondary)">Why is nothing above 79?</b><br><span style="color:var(--muted)">Fiber and water factors are conservatively stubbed at neutral until those datasets are wired in. Scores can only go up from here — that's deliberate.</span><br><br>
+      <b style="color:var(--text-secondary)">What makes a 76 valuable?</b><br><span style="color:var(--muted)">A 76 in the Watch band means: excellent grid access, inside an active corridor, big contiguous acreage — at ranch-land prices. The gap between that price and data-center-adjacent comps is the trade.</span><br><br>
+      <b style="color:var(--text-secondary)">Has the model ever called one right?</b><br><span style="color:var(--muted)">Backtested: scoring NE Louisiana with only pre-announcement data, the model's #1 cell is where Meta later built its $27B Hyperion campus. The glowing zones on the Louisiana map are that run's output.</span><br><br>
+      <b style="color:var(--text-secondary)">Where does the data come from?</b><br><span style="color:var(--muted)">County parcel records (via Regrid), HIFLD grid infrastructure, FEMA flood maps, utility &amp; PSC filings. Demo parcels are labeled illustrative.</span><br><br>
+      <b style="color:var(--text-secondary)">More questions?</b><br><span style="color:var(--muted)"><a href="mailto:srea222@gmail.com?subject=SiteAlpha" style="color:#86b6ef">Email the founder</a> — feedback shapes the next build.</span>
+    </div>
+  </div>
+</div>
+<div id="mapLegend" style="position:absolute;z-index:1100;left:14px;bottom:40px;background:rgba(35,35,34,.92);border:1px solid #3f3f3b;border-radius:8px;padding:10px 12px;font-size:11px;color:var(--text-secondary)">
+  <b style="color:var(--text-primary);font-size:11.5px">Reading the map</b><br>
+  <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#3987e5;margin-right:5px"></span>Real parcel — <b>click for score</b><br>
+  <span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#199e70;margin-right:5px"></span>Campus (green announced, orange building)<br>
+  <span style="display:inline-block;width:9px;height:9px;background:rgba(134,182,239,.5);margin-right:5px"></span>AI-flagged zone (Louisiana backtest)<br>
+  <span style="color:var(--muted)">Brighter blue = higher score</span>
+</div>
 <main>
   <div id="map"></div>
   <div id="tableView"></div>
   <aside id="panel">
-    <h2>Select a marker</h2>
+    <h2>Click anything on the map</h2>
     <div class="placeholder">
       <b style="color:var(--text-secondary)">Circles</b> are data center campuses, colored by status.<br>
       <b style="color:var(--text-secondary)">Diamonds</b> are illustrative demo parcels with a DC Probability Score (0–100) — click one to see the factor-by-factor breakdown.<br><br>
@@ -914,6 +956,22 @@ function realMarker(a){
   m.on("click",()=>showReal(a));
   return m;
 }
+function qual(frac){return frac>=.85?"excellent":frac>=.6?"strong":frac>=.4?"moderate":"weak";}
+function whyScore(a){
+  const fs=a.slice(7), parts=[];
+  parts.push(`<b>${qual(fs[0]/30).charAt(0).toUpperCase()+qual(fs[0]/30).slice(1)} grid access</b> (${fs[0].toFixed(1)}/30) — distance-weighted against real HIFLD substations up to 345kV.`);
+  parts.push(`<b>${qual(fs[1]/20)} corridor momentum</b> (${fs[1].toFixed(1)}/20) — sits between an operating Stargate campus and an announced expansion.`);
+  if(fs[5]>=6) parts.push(`<b>Prime acreage</b> (${fs[5].toFixed(1)}/7) — ${Math.round(a[3]).toLocaleString()} acres is hyperscale-sized without assemblage risk.`);
+  if(fs[7]>=4) parts.push(`<b>Priced below the corridor</b> (${fs[7].toFixed(1)}/5) — assessed at $${a[3]>0?Math.round(a[4]/a[3]).toLocaleString():"–"}/ac vs corridor comps of $2.5K–$6K.`);
+  parts.push(`<span style="color:var(--muted)">Held back by: fiber &amp; water unverified (stubbed neutral) — the ceiling today is ~79.</span>`);
+  return parts.join("<br>");
+}
+function bandAction(s){
+  if(s>=80) return "<b style='color:#86b6ef'>Acquire/Option.</b> Top conviction — run flood, rail and mineral-rights diligence this week and open the owner conversation.";
+  if(s>=60) return "<b style='color:#3987e5'>Watch closely.</b> Strong candidate: 1) check FEMA flood + rail on the map layers, 2) verify mineral rights at the county clerk, 3) if clean, an option at ranch-land prices is the low-risk way in.";
+  if(s>=40) return "<b style='color:#256abf'>Monitor.</b> Fundamentals aren't there yet — but scores re-run monthly, and one utility filing can move a parcel two bands.";
+  return "<b style='color:var(--muted)'>Pass.</b> A hard exclusion (flood/slope/size) or weak fundamentals. Money is better spent up the list.";
+}
 function showReal(a){
   const b=band(a[2]); const fs=a.slice(7);
   let rows="";
@@ -928,7 +986,11 @@ function showReal(a){
     <div class="score-big" style="color:${b[2]}">${a[2]}</div>
     <span class="badge">DC Probability Score · ${b[0]}</span>
     ${rows}
-    <div class="note">Real parcel — ${REAL_META.county} Regrid export (${REAL_META.exported}), scored by SiteAlpha pipeline v0.1 with live HIFLD substation data. Fiber &amp; water factors stubbed at neutral. Not investment advice.</div>`;
+    <div style="margin:12px 0 4px;color:var(--text-primary);font-weight:600;font-size:12.5px">Why this score</div>
+    <div class="note">${whyScore(a)}</div>
+    <div style="margin:10px 0 4px;color:var(--text-primary);font-weight:600;font-size:12.5px">What to do with it</div>
+    <div class="note">${bandAction(a[2])}</div>
+    <div class="note" style="color:var(--muted)">Real parcel — ${REAL_META.county} Regrid export (${REAL_META.exported}), pipeline v0.1 with live HIFLD substation data. Fiber &amp; water stubbed neutral (scores rise when wired). Not investment advice.</div>`;
 }
 function scoreParcel(p){
   let s=0; for(const f of FACTORS) s += (p.f[f.k]||0)*f.w;
@@ -1220,6 +1282,44 @@ document.getElementById("wEmg").onclick=()=>{closeWelcome();marketsPanel.style.d
 document.getElementById("wReal").onclick=()=>{closeWelcome();map.fitBounds(CORRIDORS.tx.b,{padding:[20,20]});
   setTimeout(()=>{const a=REAL[0];showReal(a);},1400);};
 welcome.addEventListener("click",e=>{if(e.target===welcome)closeWelcome();});
+
+// ---------------- HELP PANEL ----------------
+const helpPanel=document.getElementById("helpPanel");
+document.getElementById("btnHelp").onclick=()=>{helpPanel.style.display=helpPanel.style.display==="none"?"block":"none";marketsPanel.style.display="none";};
+document.getElementById("helpClose").onclick=()=>helpPanel.style.display="none";
+
+// ---------------- AI-FLAGGED ZONES (Louisiana backtest, top 30 of 4,293 cells) ----------------
+const LA_ZONES=[[32.47, -91.62, 67], [32.49, -91.62, 66], [32.29, -90.92, 66], [32.47, -91.64, 66], [32.47, -91.6, 66], [32.29, -90.94, 66], [32.47, -91.58, 66], [32.49, -91.64, 66], [32.27, -90.92, 66], [32.49, -91.6, 66], [32.29, -90.9, 66], [32.31, -90.92, 66], [32.27, -90.94, 65], [32.31, -90.9, 65], [32.49, -91.58, 65], [32.47, -91.56, 65], [32.31, -90.94, 65], [32.27, -90.9, 65], [32.45, -91.62, 64], [32.45, -91.6, 64], [32.29, -90.96, 64], [32.29, -90.88, 64], [32.49, -91.56, 64], [32.31, -90.88, 64], [32.33, -90.92, 64], [32.33, -90.9, 64], [32.45, -91.58, 64], [32.45, -91.64, 64], [32.47, -91.66, 64], [32.27, -90.96, 64]];
+const zoneLayer=L.layerGroup().addTo(map);
+LA_ZONES.forEach((z,i)=>{
+  const [lat,lon,s]=z, h=0.01;
+  L.rectangle([[lat-h,lon-h],[lat+h,lon+h]],{color:"#86b6ef",weight:1,fillColor:"#86b6ef",fillOpacity:.28+.4*(i<2?1:0)})
+   .bindTooltip(`<b>AI-flagged zone #${i+1}</b><br>Backtest score ${s} — flagged with pre-announcement data only${i<2?"<br><b style='color:#5fd3a5'>Meta built here.</b>":""}<br><i>Parcel-level scoring coming to this corridor</i>`,{sticky:true})
+   .on("click",()=>locationBrief(lat,lon,`AI-flagged zone #${i+1} — NE Louisiana`))
+   .addTo(zoneLayer);
+});
+
+// ---------------- OPPORTUNITY RINGS for markets without parcels ----------------
+const ringLayer=L.layerGroup().addTo(map);
+function showRings(c){
+  ringLayer.clearLayers();
+  L.circle(c,{radius:40233,color:"#199e70",weight:1.5,dashArray:"6 5",fillColor:"#199e70",fillOpacity:.06})
+   .bindTooltip("<b>Opportunity radius (25 mi)</b><br>Where second-wave land plays typically happen<br><i>Parcel scoring: subscription coverage</i>",{sticky:true}).addTo(ringLayer);
+  L.circle(c,{radius:16093,color:"#199e70",weight:1,dashArray:"3 5",fillOpacity:0})
+   .bindTooltip("<b>Inner radius (10 mi)</b> — supplier/substation belt",{sticky:true}).addTo(ringLayer);
+}
+
+// market click behavior: pilot -> auto-open top parcel; others -> rings
+MARKETS.forEach((m,i)=>{
+  m.onArrive = () => {
+    if(i===0){ ringLayer.clearLayers(); setTimeout(()=>showReal(REAL[0]),1300); }
+    else showRings(m.c);
+  };
+});
+// rewire market cards (replace onclick set earlier)
+Array.from(mktList.children).forEach((card,i)=>{
+  card.onclick=()=>{ const m=MARKETS[i]; map.flyTo(m.c,m.z,{duration:1.2}); locationBrief(m.c[0],m.c[1],m.name); m.onArrive(); };
+});
 
 refresh();
 </script>
