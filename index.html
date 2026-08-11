@@ -724,9 +724,15 @@ svg.leaflet-image-layer.leaflet-interactive path {
   @media (max-width:760px){ aside{display:none} }
 </style>
 </head>
-<body>
+<body style="position:relative">
 <header>
-  <h1>SiteAlpha <span>Data Center Land Intelligence · v0.6 — first real corridor live</span></h1>
+  <h1>SiteAlpha <span>Data Center Land Intelligence · v0.7 — search anywhere</span></h1>
+  <div id="searchWrap" style="display:flex;gap:6px;align-items:center;margin-left:auto;margin-right:14px">
+    <input id="searchBox" type="text" placeholder="Search any place — try &quot;Loudoun County VA&quot;" 
+      style="width:290px;background:#2b2b2a;border:1px solid #4a4a46;border-radius:6px;color:var(--text-primary);padding:7px 10px;font-size:12.5px;outline:none">
+    <button class="btn" id="btnSearch">Search</button>
+    <button class="btn" id="btnMarkets" style="border-color:#3987e5;color:#86b6ef">☰ Markets guide</button>
+  </div>
   <div class="tiles">
     <div class="tile"><div class="v" id="tSites">–</div><div class="l">Campuses tracked</div></div>
     <div class="tile"><div class="v" id="tEmerg">–</div><div class="l">In emerging markets</div></div>
@@ -761,6 +767,27 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <span id="liveMsg" style="color:var(--muted)"></span>
 </div>
 
+<div id="marketsPanel" style="display:none;position:absolute;z-index:1200;top:118px;right:14px;width:330px;max-height:70vh;overflow:auto;background:#232322;border:1px solid #3f3f3b;border-radius:10px;padding:14px;box-shadow:0 8px 30px rgba(0,0,0,.5)">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+    <b style="color:var(--text-primary);font-size:14px">Where to look next</b>
+    <button class="btn" id="mktClose" style="padding:2px 8px">✕</button>
+  </div>
+  <div style="color:var(--muted);font-size:11.5px;margin-bottom:10px">Emerging markets ranked by SiteAlpha conviction — click any to fly there and get the brief.</div>
+  <div id="mktList"></div>
+</div>
+<div id="welcome" style="position:absolute;z-index:1300;inset:0;background:rgba(13,13,12,.72);display:flex;align-items:center;justify-content:center">
+  <div style="background:#232322;border:1px solid #3f3f3b;border-radius:12px;max-width:520px;padding:26px 28px;box-shadow:0 12px 50px rgba(0,0,0,.6)">
+    <h2 style="margin:0 0 6px;color:var(--text-primary);font-size:20px">Find land before the data centers do.</h2>
+    <p style="color:var(--text-secondary);font-size:13px;line-height:1.55;margin:0 0 16px">
+      SiteAlpha scores land on its probability of being acquired for data center development.
+      <b style="color:var(--text-primary)">Blue dots</b> are real, scored parcels. <b style="color:var(--text-primary)">Circles</b> are the 60 campuses we track. Search any place, or start with a guided path:</p>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn" id="wEmg" style="text-align:left;padding:10px 14px;border-color:#199e70"><b style="color:#5fd3a5">→ Show me the emerging markets</b><br><span style="color:var(--muted);font-size:11.5px">Ranked list of where the next wave is landing</span></button>
+      <button class="btn" id="wReal" style="text-align:left;padding:10px 14px;border-color:#3987e5"><b style="color:#86b6ef">→ See 2,703 real scored parcels</b><br><span style="color:var(--muted);font-size:11.5px">Our live pilot: Shackelford County, TX — click any parcel for its score</span></button>
+      <button class="btn" id="wFree" style="text-align:left;padding:10px 14px"><b style="color:var(--text-secondary)">→ Just let me explore</b></button>
+    </div>
+  </div>
+</div>
 <main>
   <div id="map"></div>
   <div id="tableView"></div>
@@ -1103,6 +1130,96 @@ function renderTable(){
   h+=`</tbody></table>`;
   tv.innerHTML=h;
 }
+
+
+// ---------------- MARKETS GUIDE ----------------
+const MARKETS=[
+ {name:"West Texas Big Country", tag:"PILOT — parcels live", c:[32.62,-99.45], z:9, tier:"emg",
+  why:"Between Stargate Abilene (operating) and the announced Shackelford expansion. Ranch land $2.5K–$6K/ac. 2,703 parcels scored today — 809 in the Watch band."},
+ {name:"Northeast Louisiana I-20", tag:"Corridor #2 — next", c:[32.42,-91.65], z:9, tier:"emg",
+  why:"Meta's $27B Hyperion campus at Holly Ridge. Our backtest: the model's #1 cell in NE Louisiana is where Meta built. Dry Macon Ridge land is the prize."},
+ {name:"Memphis Metro / Colossus", tag:"emerging", c:[35.10,-90.10], z:9, tier:"emg",
+  why:"xAI Colossus operating + Google West Memphis announced across the river. Delta farmland with big flood-zone spreads — scoring separates the dry from the doomed."},
+ {name:"Central Mississippi", tag:"emerging", c:[32.58,-90.08], z:9, tier:"emg",
+  why:"AWS's $10B Madison County buildout. Tech-corridor overlay zoning north of Jackson signals a county actively courting the second wave."},
+ {name:"Northern Indiana", tag:"emerging", c:[41.68,-86.45], z:9, tier:"emg",
+  why:"AWS New Carlisle under construction; two pending large-load interconnection requests nearby. Midwest power + rail-belt land prices."},
+ {name:"Central Ohio Fringe", tag:"Corridor #3", c:[40.05,-82.45], z:9, tier:"est",
+  why:"East of the New Albany four-hyperscaler cluster. Established momentum — prices re-rating fast, thinner upside but fastest validation."},
+ {name:"New Mexico Borderlands", tag:"frontier", c:[32.35,-106.75], z:9, tier:"emg",
+  why:"Stargate Doña Ana announced. Desert acreage at $3K/ac; water is the open question — big optionality, bigger diligence."},
+ {name:"Susquehanna / PA Power Belt", tag:"frontier", c:[41.09,-76.15], z:9, tier:"emg",
+  why:"Nuclear-adjacent (Talen/AWS) and coal-conversion (Homer City) plays. Behind-the-meter power is the moat; land near interconnects is scarce."}
+];
+const mktList=document.getElementById("mktList");
+MARKETS.forEach((m,i)=>{
+  const d=document.createElement("div");
+  d.style.cssText="border:1px solid #3f3f3b;border-radius:8px;padding:10px 12px;margin-bottom:8px;cursor:pointer";
+  d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center">
+     <b style="color:var(--text-primary);font-size:13px">${i+1}. ${m.name}</b>
+     <span style="font-size:10px;color:${m.tag.startsWith("PILOT")?"#5fd3a5":"#86b6ef"};border:1px solid #3f3f3b;border-radius:10px;padding:1px 7px">${m.tag}</span></div>
+   <div style="color:var(--muted);font-size:11.5px;margin-top:4px;line-height:1.45">${m.why}</div>`;
+  d.onmouseenter=()=>d.style.borderColor="#3987e5"; d.onmouseleave=()=>d.style.borderColor="#3f3f3b";
+  d.onclick=()=>{ map.flyTo(m.c,m.z,{duration:1.2}); locationBrief(m.c[0],m.c[1],m.name); };
+  mktList.appendChild(d);
+});
+const marketsPanel=document.getElementById("marketsPanel");
+document.getElementById("btnMarkets").onclick=()=>{marketsPanel.style.display=marketsPanel.style.display==="none"?"block":"none";};
+document.getElementById("mktClose").onclick=()=>marketsPanel.style.display="none";
+
+// ---------------- SEARCH (Nominatim geocoder) ----------------
+async function doSearch(){
+  const q=document.getElementById("searchBox").value.trim();
+  if(!q) return;
+  flash("Searching…");
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=us&q=${encodeURIComponent(q)}`,{headers:{"Accept":"application/json"}});
+    const js=await r.json();
+    if(!js.length){ flash(`No match for "${q}"`); return; }
+    const hit=js[0], lat=+hit.lat, lon=+hit.lon;
+    const isBig=["state","administrative"].includes(hit.type)&&hit.addresstype==="state";
+    map.flyTo([lat,lon], isBig?7:9, {duration:1.2});
+    locationBrief(lat,lon,hit.display_name.split(",").slice(0,2).join(", "));
+  }catch(e){ flash("Geocoder unreachable — try again"); }
+}
+document.getElementById("btnSearch").onclick=doSearch;
+document.getElementById("searchBox").addEventListener("keydown",e=>{if(e.key==="Enter")doSearch();});
+
+// ---------------- LOCATION BRIEF ----------------
+function locationBrief(lat,lon,label){
+  const withD=SITES.map(s=>({s,d:havJS(lat,lon,s.lat,s.lng)})).sort((a,b)=>a.d-b.d);
+  const near=withD.filter(x=>x.d<=250).slice(0,5);
+  const nearest=withD[0];
+  let market;
+  if(nearest.d<=60) market=nearest.s.t==="emg"
+      ?`<b style="color:#5fd3a5">Emerging market</b> — inside the opportunity radius of ${nearest.s.n} (${Math.round(nearest.d)} mi)`
+      :`<b style="color:#86b6ef">Established market</b> — ${nearest.s.n} is ${Math.round(nearest.d)} mi away. Land here has largely re-rated; upside is thinner.`;
+  else if(nearest.d<=150) market=`<b style="color:var(--text-secondary)">Watch zone</b> — nearest tracked campus is ${nearest.s.n}, ${Math.round(nearest.d)} mi out.`;
+  else market=`<b style="color:var(--text-secondary)">Frontier</b> — no tracked campus within ${Math.round(nearest.d)} mi. Cheap land, weak signal.`;
+  const inTX = lat>32.2&&lat<33.05&&lon>-99.85&&lon<-98.85;
+  const rows=near.map(x=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #2e2e2c;padding:4px 0;font-size:12px">
+    <span style="color:var(--text-secondary)">${x.s.n}, ${x.s.st}</span>
+    <span style="color:var(--muted)">${SLAB[x.s.s]} · ${Math.round(x.d)} mi</span></div>`).join("")
+    ||`<div style="color:var(--muted);font-size:12px">None within 250 miles.</div>`;
+  panel.innerHTML=`<h2>${label}</h2>
+    <div class="note" style="margin-top:6px">${market}</div>
+    <div style="margin:12px 0 4px;color:var(--text-primary);font-weight:600;font-size:12.5px">Tracked campuses nearby</div>${rows}
+    <div style="margin:14px 0 4px;color:var(--text-primary);font-weight:600;font-size:12.5px">Parcel coverage</div>
+    <div class="note">${inTX
+      ?`<b style="color:#5fd3a5">LIVE</b> — you are in the Shackelford pilot. Blue dots are real scored parcels; click one. Use the Min-score slider to shortlist.`
+      :`Not scored yet. Shackelford County, TX is the live pilot (2,703 parcels) — NE Louisiana and Central Ohio are next. County-by-county coverage is what a SiteAlpha subscription buys.`}</div>
+    <div style="margin-top:10px"><button class="btn" onclick="map.fitBounds(CORRIDORS.tx.b,{padding:[20,20]})">See the live pilot →</button></div>`;
+}
+function havJS(a,b,c,d){const R=3958.8,p=Math.PI/180,x=Math.sin((c-a)*p/2)**2+Math.cos(a*p)*Math.cos(c*p)*Math.sin((d-b)*p/2)**2;return 2*R*Math.asin(Math.sqrt(x));}
+
+// ---------------- WELCOME OVERLAY ----------------
+const welcome=document.getElementById("welcome");
+function closeWelcome(){welcome.style.display="none";}
+document.getElementById("wFree").onclick=closeWelcome;
+document.getElementById("wEmg").onclick=()=>{closeWelcome();marketsPanel.style.display="block";};
+document.getElementById("wReal").onclick=()=>{closeWelcome();map.fitBounds(CORRIDORS.tx.b,{padding:[20,20]});
+  setTimeout(()=>{const a=REAL[0];showReal(a);},1400);};
+welcome.addEventListener("click",e=>{if(e.target===welcome)closeWelcome();});
 
 refresh();
 </script>
