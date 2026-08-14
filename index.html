@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SiteAlpha — Data Center Land Intelligence (v0.9)</title>
+<title>SiteAlpha — The Power-First Data Center Land Screen (v1.0)</title>
 <style>/* required styles */
 
 .leaflet-pane,
@@ -726,7 +726,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 </head>
 <body style="position:relative">
 <header>
-  <h1>SiteAlpha <span>Data Center Land Intelligence · v0.9 — two corridors live</span></h1>
+  <h1>SiteAlpha <span>Data Center Land Intelligence · v1.0 — the power-first land screen</span></h1>
   <div id="searchWrap" style="display:flex;gap:6px;align-items:center;margin-left:auto;margin-right:14px">
     <input id="searchBox" type="text" placeholder="Search any place — try &quot;Loudoun County VA&quot;" 
       style="width:290px;background:#2b2b2a;border:1px solid #4a4a46;border-radius:6px;color:var(--text-primary);padding:7px 10px;font-size:12.5px;outline:none">
@@ -742,30 +742,35 @@ svg.leaflet-image-layer.leaflet-interactive path {
   </div>
 </header>
 
-<div class="filters">
-  <label><input type="checkbox" id="fOp" checked><span class="dot" style="background:var(--op)"></span>Operating</label>
-  <label><input type="checkbox" id="fUc" checked><span class="dot" style="background:var(--uc)"></span>Under construction</label>
-  <label><input type="checkbox" id="fAn" checked><span class="dot" style="background:var(--an)"></span>Announced</label>
+<div class="filters" style="position:relative">
+  <span style="color:var(--text-secondary);font-weight:600">Jump to:</span>
+  <button class="btn" data-cor="tx">West Texas</button>
+  <button class="btn" data-cor="la">NE Louisiana</button>
+  <button class="btn" data-cor="oh">Central Ohio</button>
+  <button class="btn" id="btnUS">Whole US</button>
   <span class="sep"></span>
-  <label><input type="checkbox" id="fEst" checked>Established mkts</label>
-  <label><input type="checkbox" id="fEmg" checked>Emerging mkts</label>
-  <span class="sep"></span>
-  <label><input type="checkbox" id="fReal" checked><span class="dot" style="background:#3987e5"></span>Real parcels <i style="font-style:normal;color:var(--muted)">(TX + LA · scored)</i></label>
-  <label><input type="checkbox" id="fPar"><span class="dmnd" style="background:var(--band-acq)"></span>Demo parcels <i style="font-style:normal;color:var(--muted)">(illustrative)</i></label>
-  <label>Min score <input type="range" id="fScore" min="0" max="100" value="0"><b id="fScoreV" style="color:var(--text-primary)">0</b></label>
-  <span class="sep"></span>
-  <label><input type="checkbox" id="fFlood">Flood zones <i style="font-style:normal;color:var(--muted)">(FEMA live)</i></label>
-  <label><input type="checkbox" id="fSubs">Substations <i style="font-style:normal;color:var(--muted)">(HIFLD live)</i></label>
-  <label><input type="checkbox" id="fLines">Transmission <i style="font-style:normal;color:var(--muted)">(HIFLD live)</i></label>
-  <span class="sep"></span>
-  <span style="color:var(--muted)">Corridors:</span>
-  <button class="btn" data-cor="oh">OH</button>
-  <button class="btn" data-cor="la">LA</button>
-  <button class="btn" data-cor="tx">TX</button>
-  <button class="btn" id="btnUS">US</button>
+  <label>Show parcels scoring ≥ <input type="range" id="fScore" min="0" max="100" value="0"><b id="fScoreV" style="color:var(--text-primary)">0</b></label>
   <span class="sep"></span>
   <button class="btn" id="btnTable">Table view</button>
+  <button class="btn" id="btnLayers">Layers ▾</button>
   <span id="liveMsg" style="color:var(--muted)"></span>
+  <div id="layersMenu" style="display:none;position:absolute;z-index:1400;top:100%;right:10px;background:#232322;border:1px solid #3f3f3b;border-radius:8px;padding:12px 14px;box-shadow:0 8px 30px rgba(0,0,0,.5);min-width:250px">
+    <b style="color:var(--text-primary);font-size:12px">Power &amp; hazard layers</b><br>
+    <label><input type="checkbox" id="fSubs" checked><span class="dot" style="background:#c98500"></span>Substations <i style="font-style:normal;color:var(--muted)">(HIFLD live)</i></label><br>
+    <label><input type="checkbox" id="fLines" checked>Transmission lines <i style="font-style:normal;color:var(--muted)">(HIFLD live)</i></label><br>
+    <label><input type="checkbox" id="fFlood">Flood zones <i style="font-style:normal;color:var(--muted)">(FEMA live)</i></label>
+    <div style="border-top:1px solid #3f3f3b;margin:8px 0"></div>
+    <b style="color:var(--text-primary);font-size:12px">Parcels</b><br>
+    <label><input type="checkbox" id="fReal" checked><span class="dot" style="background:#3987e5"></span>Real scored parcels (TX + LA)</label><br>
+    <label><input type="checkbox" id="fPar"><span class="dmnd" style="background:var(--band-acq)"></span>Demo parcels (illustrative)</label>
+    <div style="border-top:1px solid #3f3f3b;margin:8px 0"></div>
+    <b style="color:var(--text-primary);font-size:12px">Campuses</b><br>
+    <label><input type="checkbox" id="fOp" checked><span class="dot" style="background:var(--op)"></span>Operating</label><br>
+    <label><input type="checkbox" id="fUc" checked><span class="dot" style="background:var(--uc)"></span>Under construction</label><br>
+    <label><input type="checkbox" id="fAn" checked><span class="dot" style="background:var(--an)"></span>Announced</label><br>
+    <label><input type="checkbox" id="fEst" checked>Established markets</label><br>
+    <label><input type="checkbox" id="fEmg" checked>Emerging markets</label>
+  </div>
 </div>
 
 <div id="marketsPanel" style="display:none;position:absolute;z-index:1200;top:118px;right:14px;width:330px;max-height:70vh;overflow:auto;background:#232322;border:1px solid #3f3f3b;border-radius:10px;padding:14px;box-shadow:0 8px 30px rgba(0,0,0,.5)">
@@ -780,8 +785,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
   <div style="background:#232322;border:1px solid #3f3f3b;border-radius:12px;max-width:520px;padding:26px 28px;box-shadow:0 12px 50px rgba(0,0,0,.6)">
     <h2 style="margin:0 0 6px;color:var(--text-primary);font-size:20px">Find land before the data centers do.</h2>
     <p style="color:var(--text-secondary);font-size:13px;line-height:1.55;margin:0 0 16px">
-      SiteAlpha scores land on its probability of being acquired for data center development.
-      <b style="color:var(--text-primary)">Blue dots</b> are real, scored parcels. <b style="color:var(--text-primary)">Circles</b> are the 60 campuses we track. Search any place, or start with a guided path:</p>
+      <b style="color:var(--text-primary)">This isn't Redfin — nothing here is listed for sale.</b> SiteAlpha scores raw land on its probability of becoming a data center site, built around the layer fiber-era tools never had: <b style="color:#c98500">power</b>. Substations and transmission load automatically as you zoom in. Search any place, or start with a guided path:</p>
     <div style="display:flex;flex-direction:column;gap:8px">
       <button class="btn" id="wEmg" style="text-align:left;padding:10px 14px;border-color:#199e70"><b style="color:#5fd3a5">→ Show me the emerging markets</b><br><span style="color:var(--muted);font-size:11.5px">Ranked list of where the next wave is landing</span></button>
       <button class="btn" id="wReal" style="text-align:left;padding:10px 14px;border-color:#3987e5"><b style="color:#86b6ef">→ See 4,734 real scored parcels</b><br><span style="color:var(--muted);font-size:11.5px">Two live corridors: West Texas & NE Louisiana — click any parcel for owner, score & est. cost</span></button>
@@ -946,9 +950,11 @@ const PARCELS = [
 const REAL_META={corridor:'tx',county:'Shackelford County, TX',exported:'2026-08-11'};
 const CORRIDOR_INFO={
  tx:{county:"Shackelford County, TX",compLo:2500,compHi:6000,minAc:5,
+     zoning:"No county zoning (rural Texas) — data center use permitted by right; no rezoning fight required",
      leading:["Stargate Shackelford expansion announced adjacent to this corridor (2026)","Operating Stargate campus at Abilene, 30–45 mi west","Watch: same-owner ranch assemblages (Newell 21K ac, Stasney 27K ac) are single-negotiation blocks"],
      note:"Regrid export 2026-08-11 · parcels ≥5 ac · live HIFLD power factor"},
  la:{county:"Richland Parish, LA",compLo:4000,compHi:9000,minAc:40,
+     zoning:"Unzoned parish (rural Louisiana) — permitted by right; parish actively recruiting industrial users",
      leading:["Oct 30, 2024: Entergy LPSC filing — 2.26GW generation at Franklin Farms for unnamed customer, 35 days before Meta announced","LAIDLEY LLC (Meta's land-acquisition shell) holds 4 tracts / ~1,775 ac in this export — the assemblage vehicle is visible in county records","Backtest: model's #1 cell here = the Hyperion site (glowing zones)"],
      note:"Regrid export 2026-08-11 · parcels ≥40 ac · live HIFLD power factor"}
 };
@@ -990,6 +996,7 @@ function bandAction(s){
   return "<b style='color:var(--muted)'>Pass.</b> A hard exclusion (flood/slope/size) or weak fundamentals. Money is better spent up the list.";
 }
 function showReal(a,cor){
+  panelLocked=true;
   cor=cor||'tx';
   const ci=CORRIDOR_INFO[cor];
   const b=band(a[2]); const fs=a.slice(7);
@@ -1001,7 +1008,7 @@ function showReal(a,cor){
   });
   const ppa=a[3]>0&&a[4]>0?` · assessed $${Math.round(a[4]/a[3]).toLocaleString()}/ac`:"";
   const laidley=(a[5]||"").toUpperCase().includes("LAIDLEY")?`<div class="note" style="border-left:3px solid #199e70;padding-left:9px"><b style="color:#5fd3a5">⚡ This owner is LAIDLEY LLC — Meta's land-acquisition shell company.</b> The assemblage that became the $27B Hyperion campus is visible right here in county records. This is what a leading indicator looks like.</div>`:"";
-  panel.innerHTML=`<h2>${a[5]||"Unknown owner"}</h2>
+  panel.innerHTML=`<div><a href="#" onclick="panelLocked=false;viewStats();return false" style="color:var(--muted);font-size:11px;text-decoration:none">← back to area stats</a></div><h2>${a[5]||"Unknown owner"}</h2>
     <div class="sub">Parcel ${a[6]} · ${ci.county} · ${Math.round(a[3]).toLocaleString()} ac${a[4]>0?` · land value $${a[4].toLocaleString()}`:""}${ppa}</div>
     ${laidley}
     <div class="score-big" style="color:${b[2]}">${a[2]}</div>
@@ -1011,6 +1018,8 @@ function showReal(a,cor){
     <div class="note">${whyScore(a)}</div>
     <div style="margin:10px 0 4px;color:var(--text-primary);font-weight:600;font-size:12.5px">Estimated acquisition cost <span style="color:var(--muted);font-weight:400">(best guess)</span></div>
     <div class="note"><b style="color:var(--text-primary);font-size:14px">${estAcq(a,cor)}</b> — ${Math.round(a[3]).toLocaleString()} ac × $${ci.compLo.toLocaleString()}–$${ci.compHi.toLocaleString()}/ac corridor comps. Assessed value${a[4]>0?` ($${a[4].toLocaleString()})`:""} runs well below market ask; an option costs a fraction of either.</div>
+    <div style="margin:10px 0 4px;color:var(--text-primary);font-weight:600;font-size:12.5px">Zoning</div>
+    <div class="note">${ci.zoning}</div>
     <div style="margin:10px 0 4px;color:var(--text-primary);font-weight:600;font-size:12.5px">Leading indicators in this corridor</div>
     <div class="note">${ci.leading.map(x=>"• "+x).join("<br>")}</div>
     <div style="margin:10px 0 4px;color:var(--text-primary);font-weight:600;font-size:12.5px">What to do with it</div>
@@ -1166,6 +1175,7 @@ fScore.addEventListener("input",()=>{fScoreV.textContent=fScore.value;refresh();
 // ---------------- SIDE PANEL ----------------
 const panel=document.getElementById("panel");
 function showSite(sd){
+  panelLocked=true;
   panel.innerHTML=`
     <h2>${sd.n}, ${sd.st}</h2>
     <div class="sub">${sd.op}</div>
@@ -1174,6 +1184,7 @@ function showSite(sd){
     <div class="note">In v1 this panel shows: campus size & power draw, land assembled (acres + price paid, from deed records), utility interconnection status, and every parcel within the opportunity radius ranked by score.</div>`;
 }
 function showParcel(p){
+  panelLocked=true;
   const b=band(p.score);
   let rows="";
   for(const f of FACTORS){
@@ -1277,6 +1288,7 @@ document.getElementById("searchBox").addEventListener("keydown",e=>{if(e.key==="
 
 // ---------------- LOCATION BRIEF ----------------
 function locationBrief(lat,lon,label){
+  panelLocked=true;
   const withD=SITES.map(s=>({s,d:havJS(lat,lon,s.lat,s.lng)})).sort((a,b)=>a.d-b.d);
   const near=withD.filter(x=>x.d<=250).slice(0,5);
   const nearest=withD[0];
@@ -1310,6 +1322,11 @@ document.getElementById("wEmg").onclick=()=>{closeWelcome();marketsPanel.style.d
 document.getElementById("wReal").onclick=()=>{closeWelcome();map.fitBounds(CORRIDORS.tx.b,{padding:[20,20]});
   setTimeout(()=>{const a=REAL[0];showReal(a);},1400);};
 welcome.addEventListener("click",e=>{if(e.target===welcome)closeWelcome();});
+
+// ---------------- LAYERS MENU ----------------
+const layersMenu=document.getElementById("layersMenu");
+document.getElementById("btnLayers").onclick=()=>{layersMenu.style.display=layersMenu.style.display==="none"?"block":"none";};
+document.addEventListener("click",e=>{if(!layersMenu.contains(e.target)&&e.target.id!=="btnLayers")layersMenu.style.display="none";});
 
 // ---------------- HELP PANEL ----------------
 const helpPanel=document.getElementById("helpPanel");
@@ -1349,6 +1366,48 @@ MARKETS.forEach((m,i)=>{
 Array.from(mktList.children).forEach((card,i)=>{
   card.onclick=()=>{ const m=MARKETS[i]; map.flyTo(m.c,m.z,{duration:1.2}); locationBrief(m.c[0],m.c[1],m.name); m.onArrive(); };
 });
+
+// ---------------- LIVE VIEW STATS (default panel state) ----------------
+let panelLocked=false;
+function median(arr){if(!arr.length)return 0;const s=[...arr].sort((a,b)=>a-b);return s[Math.floor(s.length/2)];}
+function viewStats(){
+  if(panelLocked) return;
+  const b=map.getBounds();
+  const inview=[];
+  REAL.forEach(a=>{if(b.contains([a[0],a[1]]))inview.push([a,"tx"]);});
+  REAL_LA.forEach(a=>{if(b.contains([a[0],a[1]]))inview.push([a,"la"]);});
+  if(!inview.length){
+    const camps=SITES.filter(s=>b.contains([s.lat,s.lng]));
+    panel.innerHTML=`<h2>This view</h2>
+      <div class="note"><b style="color:var(--text-primary)">${camps.length}</b> tracked campuses in view — ${camps.filter(c=>c.t==="emg").length} in emerging markets.</div>
+      <div class="note">No scored parcels here yet. Two corridors are live: <b>West Texas</b> (2,703 parcels) and <b>NE Louisiana</b> (2,031). Use the Jump-to buttons above, or the Markets guide.</div>
+      <div class="note" style="color:var(--muted)">Corridor coverage is what a SiteAlpha subscription buys — a new corridor is one data pull away.</div>`;
+    return;
+  }
+  const bands={W:0,M:0,P:0}, wacres=[], ppa=[];
+  const owners={};
+  inview.forEach(([a,cor])=>{
+    if(a[2]>=60){bands.W++;wacres.push(a[3]);}else if(a[2]>=40)bands.M++;else bands.P++;
+    if(a[4]>0&&a[3]>0)ppa.push(a[4]/a[3]);
+    const o=(a[5]||"").trim().slice(0,26);
+    if(o&&o!=="MULTIPLE OWNERS")owners[o]=(owners[o]||0)+a[3];
+  });
+  const top=Object.entries(owners).sort((x,y)=>y[1]-x[1]).slice(0,4);
+  const wa=wacres.reduce((s,x)=>s+x,0);
+  panel.innerHTML=`<h2>This view — live stats</h2>
+    <div class="sub">${inview.length.toLocaleString()} scored parcels on screen · pan or zoom and these update</div>
+    <div style="display:flex;gap:8px;margin:10px 0">
+      <div style="flex:1;background:#2b2b2a;border-radius:8px;padding:8px 10px;text-align:center"><div style="font-size:18px;font-weight:700;color:#3987e5">${bands.W}</div><div style="font-size:10px;color:var(--muted)">WATCH</div></div>
+      <div style="flex:1;background:#2b2b2a;border-radius:8px;padding:8px 10px;text-align:center"><div style="font-size:18px;font-weight:700;color:#256abf">${bands.M}</div><div style="font-size:10px;color:var(--muted)">MONITOR</div></div>
+      <div style="flex:1;background:#2b2b2a;border-radius:8px;padding:8px 10px;text-align:center"><div style="font-size:18px;font-weight:700;color:var(--muted)">${bands.P}</div><div style="font-size:10px;color:var(--muted)">PASS</div></div>
+    </div>
+    <div class="note"><b>${Math.round(wa).toLocaleString()} acres</b> in the Watch band on screen · median assessed <b>$${Math.round(median(ppa)).toLocaleString()}/ac</b></div>
+    <div style="margin:10px 0 4px;color:var(--text-primary);font-weight:600;font-size:12.5px">Largest owners in view (by acres)</div>
+    ${top.map(([o,ac])=>`<div style="display:flex;justify-content:space-between;border-bottom:1px solid #2e2e2c;padding:4px 0;font-size:12px"><span style="color:var(--text-secondary)">${o}</span><span style="color:var(--muted)">${Math.round(ac).toLocaleString()} ac</span></div>`).join("")}
+    <div class="note" style="color:var(--muted);margin-top:8px">Click any blue dot for owner, score breakdown &amp; estimated acquisition cost.</div>`;
+}
+map.on("moveend",()=>setTimeout(viewStats,150));
+setTimeout(viewStats,800);
 
 refresh();
 </script>
